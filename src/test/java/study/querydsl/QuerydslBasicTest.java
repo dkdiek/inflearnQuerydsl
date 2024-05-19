@@ -25,6 +25,7 @@ import study.querydsl.Entity.Member;
 import study.querydsl.Entity.QMember;
 import study.querydsl.Entity.Team;
 import study.querydsl.dto.MemberDto;
+import study.querydsl.dto.QMemberDto;
 import study.querydsl.dto.UserDto;
 
 @SpringBootTest
@@ -391,30 +392,34 @@ public class QuerydslBasicTest {
         .from(member)
         .fetch();
   }
-  
+
   @Test
   void findDtoByUserDto() throws Exception {
     QMember memberSub = new QMember("memberSub");
-    List<UserDto> fetch = queryFactory
-            .select(Projections.constructor(UserDto.class,
-                            member.username.as("name"),
-                            ExpressionUtils.as(
-                                    JPAExpressions
-                                            .select(memberSub.age.max())
-                                            .from(memberSub), "age")
-                    )
-            ).from(member)
+    List<UserDto> fetch =
+        queryFactory
+            .select(
+                Projections.constructor(
+                    UserDto.class,
+                    member.username.as("name"),
+                    ExpressionUtils.as(
+                        JPAExpressions.select(memberSub.age.max()).from(memberSub), "age")))
+            .from(member)
             .fetch();
   }
-  
+
   @Test
   void findDtoConstructor() throws Exception {
-    List<UserDto> fetch = queryFactory
-            .select(Projections.constructor(UserDto.class,
-                            member.username,
-                            member.age
-                    )
-            ).from(member)
+    List<UserDto> fetch =
+        queryFactory
+            .select(Projections.constructor(UserDto.class, member.username, member.age))
+            .from(member)
             .fetch();
+  }
+
+  @Test
+  public void projection() {
+    List<MemberDto> result =
+        queryFactory.select(new QMemberDto(member.username, member.age)).from(member).fetch();
   }
 }
