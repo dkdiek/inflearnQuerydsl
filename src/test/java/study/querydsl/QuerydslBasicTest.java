@@ -160,4 +160,27 @@ public class QuerydslBasicTest {
 
     queryFactory.select(member).from(member, team).on(member.username.eq(team.name)).fetch();
   }
+  
+  @Test
+  void join_on_filtering() throws Exception {
+    List<Tuple> result = queryFactory
+            .select(member, team)
+            .from(member)
+            .leftJoin(member.team, team)
+            .on(team.name.eq("teamA"))
+            .fetch();
+    for (Tuple tuple : result) {
+      System.out.println(tuple);
+    }
+  }
+  
+  @Test
+  void theta_join() throws Exception {
+    em.persist(new Member("teamA"));
+    em.persist(new Member("teamB"));
+    em.persist(new Member("teamB"));
+    
+    queryFactory.select(member).from(member, team).on(member.username.eq(team.name)).fetch();
+  }
+  
 }
