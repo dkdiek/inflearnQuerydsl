@@ -7,6 +7,8 @@ import static study.querydsl.Entity.QTeam.*;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnit;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -157,12 +159,10 @@ public class QuerydslBasicTest {
   void theta_join() throws Exception {
     em.persist(new Member("teamA"));
     em.persist(new Member("teamB"));
-    
-    List<Member> result = queryFactory
-            .select(member)
-            .from(member, team)
-            .where(member.username.eq(team.name))
-            .fetch();  }
+
+    List<Member> result =
+        queryFactory.select(member).from(member, team).where(member.username.eq(team.name)).fetch();
+  }
 
   @Test
   void join_on_filtering() throws Exception {
@@ -184,23 +184,53 @@ public class QuerydslBasicTest {
     em.persist(new Member("teamB"));
     em.persist(new Member("teamC"));
 
-///*    List<Tuple> result =
-//        queryFactory
-//            .select(member, team)
-//            .from(member)
-//            .join(team)
-//            .on(member.username.eq(team.name))
-//            .fetch();*/
+    /// *    List<Tuple> result =
+    //        queryFactory
+    //            .select(member, team)
+    //            .from(member)
+    //            .join(team)
+    //            .on(member.username.eq(team.name))
+    //            .fetch();*/
     List<Tuple> result =
-            queryFactory
-                    .select(member, team)
-                    .from(member)
-                    .leftJoin(team)
-                    .on(member.username.eq(team.name))
-                    .fetch();
+        queryFactory
+            .select(member, team)
+            .from(member)
+            .leftJoin(team)
+            .on(member.username.eq(team.name))
+            .fetch();
 
     for (Tuple tuple : result) {
       System.out.println("tuple= " + tuple.toString());
     }
+  }
+
+  @PersistenceUnit EntityManagerFactory emf;
+
+  @Test
+  void fetchJoinNo() throws Exception {
+    em.flush();
+    em.clear();
+
+    Member findMember =
+        queryFactory.selectFrom(member).where(member.username.eq("member1")).fetchOne();
+    boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
+    assertThat(loaded).as("페치 조인 미적용").isFalse();
+  }
+
+  @Test
+  void fetchJoinUse() throws Exception {
+    em.flush();
+    em.clear();
+
+    Member findMember =
+        queryFactory
+            .selectFrom(member)
+            .join(member.team, team)
+            .fetchJoin()
+            .where(member.username.eq("member1"))
+            .fetchOne();
+
+    boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
+    assertThat(loaded).as("페치 조인 미적용").isTrue();
   }
 }
