@@ -8,8 +8,8 @@ import static study.querydsl.Entity.QTeam.*;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
@@ -459,15 +459,19 @@ public class QuerydslBasicTest {
     return queryFactory
         .selectFrom(member)
         .where(
-                usernameParamEq(usernameCond), ageEq(ageCond))
+                allEq(usernameCond,ageCond))
         .fetch();
   }
 
-  private Predicate usernameParamEq(String usernameCond) {
+  private BooleanExpression usernameParamEq(String usernameCond) {
     return usernameCond != null ? member.username.eq(usernameCond) : null;
   }
   
-  private Predicate ageEq(Integer ageCond) {
+  private BooleanExpression ageEq(Integer ageCond) {
     return ageCond != null ? member.age.eq(ageCond) : null;
+  }
+  
+  private BooleanExpression allEq(String u, Integer a){
+    return usernameParamEq(u).and(ageEq(a));
   }
 }
