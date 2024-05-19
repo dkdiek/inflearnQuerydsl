@@ -157,13 +157,17 @@ public class QuerydslBasicTest {
   void theta_join() throws Exception {
     em.persist(new Member("teamA"));
     em.persist(new Member("teamB"));
+    
+    List<Member> result = queryFactory
+            .select(member)
+            .from(member, team)
+            .where(member.username.eq(team.name))
+            .fetch();  }
 
-    queryFactory.select(member).from(member, team).on(member.username.eq(team.name)).fetch();
-  }
-  
   @Test
   void join_on_filtering() throws Exception {
-    List<Tuple> result = queryFactory
+    List<Tuple> result =
+        queryFactory
             .select(member, team)
             .from(member)
             .leftJoin(member.team, team)
@@ -173,14 +177,30 @@ public class QuerydslBasicTest {
       System.out.println(tuple);
     }
   }
-  
+
   @Test
-  void theta_join() throws Exception {
+  void join_on_no_relation() throws Exception {
     em.persist(new Member("teamA"));
     em.persist(new Member("teamB"));
-    em.persist(new Member("teamB"));
-    
-    queryFactory.select(member).from(member, team).on(member.username.eq(team.name)).fetch();
+    em.persist(new Member("teamC"));
+
+///*    List<Tuple> result =
+//        queryFactory
+//            .select(member, team)
+//            .from(member)
+//            .join(team)
+//            .on(member.username.eq(team.name))
+//            .fetch();*/
+    List<Tuple> result =
+            queryFactory
+                    .select(member, team)
+                    .from(member)
+                    .leftJoin(team)
+                    .on(member.username.eq(team.name))
+                    .fetch();
+
+    for (Tuple tuple : result) {
+      System.out.println("tuple= " + tuple.toString());
+    }
   }
-  
 }
