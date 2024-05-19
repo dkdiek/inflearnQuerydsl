@@ -23,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.Entity.Member;
 import study.querydsl.Entity.QMember;
@@ -456,22 +457,53 @@ public class QuerydslBasicTest {
   }
 
   private List<Member> searchMember2(String usernameCond, Integer ageCond) {
-    return queryFactory
-        .selectFrom(member)
-        .where(
-                allEq(usernameCond,ageCond))
-        .fetch();
+    return queryFactory.selectFrom(member).where(allEq(usernameCond, ageCond)).fetch();
   }
 
   private BooleanExpression usernameParamEq(String usernameCond) {
     return usernameCond != null ? member.username.eq(usernameCond) : null;
   }
-  
+
   private BooleanExpression ageEq(Integer ageCond) {
     return ageCond != null ? member.age.eq(ageCond) : null;
   }
-  
-  private BooleanExpression allEq(String u, Integer a){
+
+  private BooleanExpression allEq(String u, Integer a) {
     return usernameParamEq(u).and(ageEq(a));
+  }
+
+  @Test
+  @Commit
+  public void bulkUpdate() {
+    long count =
+        queryFactory.update(member).set(member.username, "비회원").where(member.age.lt(28)).execute();
+
+    em.flush();
+    em.clear();
+  }
+
+  @Test
+  public void bulkAdd() {
+    long count = queryFactory.update(member).set(member.age, member.age.add(-1)).execute();
+
+    em.flush();
+    em.clear();
+  }
+
+  @Test
+  public void bulkDelete() {
+    long count = queryFactory.delete(member).where(member.age.gt(18)).execute();
+  }
+
+  @Test
+  void sqlFunction() throws Exception {
+    String result =
+        queryFactory
+            .select(
+                Expressions.stringTemplate(
+                    "function('replace', {0}, {1}, {2})"
+                        , member.username, "member", "M"))
+            .from(member)
+            .fetchFirst();
   }
 }
