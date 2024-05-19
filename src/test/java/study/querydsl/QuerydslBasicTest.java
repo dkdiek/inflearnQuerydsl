@@ -6,6 +6,7 @@ import static study.querydsl.Entity.QMember.*;
 import static study.querydsl.Entity.QTeam.*;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -272,11 +273,7 @@ public class QuerydslBasicTest {
     List<Member> result =
         queryFactory
             .selectFrom(member)
-            .where(
-                member.age.in(
-                    select(memberSub.age)
-                        .from(memberSub)
-                        .where(memberSub.age.gt(10))))
+            .where(member.age.in(select(memberSub.age).from(memberSub).where(memberSub.age.gt(10))))
             .fetch();
 
     assertThat(result).extracting("age").containsExactly(20, 30, 40);
@@ -289,17 +286,34 @@ public class QuerydslBasicTest {
 
     List<Tuple> fetch =
         queryFactory
-            .select(member.username,
-                    select(
-                                    memberSub.age.avg())
-                            .from(memberSub)
-            )
+            .select(member.username, select(memberSub.age.avg()).from(memberSub))
             .from(member)
             .fetch();
     for (Tuple tuple : fetch) {
       System.out.println("username = " + tuple.get(member.username));
-      System.out.println(
-          "age = " + tuple.get(select(memberSub.age.avg()).from(memberSub)));
+      System.out.println("age = " + tuple.get(select(memberSub.age.avg()).from(memberSub)));
     }
+  }
+
+  @Test
+  void basicCase() throws Exception {
+    queryFactory
+        .select(member.age
+                .when(10).then("열살")
+                .when(20).then("스무살")
+                .otherwise("기타"))
+        .from(member)
+        .fetch();
+  }
+  
+  @Test
+  void complexcase() throws Exception {
+    queryFactory
+            .select(new CaseBuilder()
+                    .when(member.age.between(0,20)).then("0~20살")
+                    .when(member.age.between(21,30)).then("21~30살")
+                    .otherwise("기타"))
+            .from(member)
+            .fetch();
   }
 }
