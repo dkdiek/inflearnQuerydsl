@@ -62,6 +62,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
 
   @Override
   public Page<MemberTeamDto> searchPageSimple(MemberSearchCondition condition, Pageable pageable) {
+    System.currentTimeMillis();
     final var content =
         queryFactory
             .select(new QMemberTeamDto(member.id, member.username, member.age, team.id, team.name))
@@ -89,7 +90,6 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
             .fetchOne();
 
     return new PageImpl<>(content, pageable, total);
-    
   }
 
   @Override
