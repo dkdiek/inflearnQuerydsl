@@ -16,11 +16,6 @@ import study.querydsl.dto.MemberSearchCondition;
 import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.dto.QMemberTeamDto;
 
-/**
- * study.querydsl.repository MemberJpaRepository
- *
- * @author : K
- */
 @Repository
 public class MemberJpaRepository {
 
