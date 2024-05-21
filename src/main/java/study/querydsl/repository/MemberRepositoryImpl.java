@@ -89,6 +89,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
             .fetchOne();
 
     return new PageImpl<>(content, pageable, total);
+    
   }
 
   @Override
